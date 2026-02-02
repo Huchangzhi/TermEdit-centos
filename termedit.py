@@ -327,7 +327,7 @@ class TermEdit(App):
     Screen {
         background: #1e1e1e;
     }
-
+    
     /* 菜单栏 */
     MenuBar {
         dock: top;
@@ -335,7 +335,7 @@ class TermEdit(App):
         background: #0078d4;
         padding: 0;
     }
-
+    
     .menu-btn {
         min-width: 12;
         height: 1;
@@ -345,15 +345,15 @@ class TermEdit(App):
         padding: 0;
         margin: 0;
     }
-
+    
     .menu-btn:hover {
         background: #106ebe;
     }
-
+    
     .menu-btn:focus {
         background: #005a9e;
     }
-
+    
     /* 下拉菜单 */
     FileMenu, EditMenu {
         width: 26;
@@ -362,14 +362,13 @@ class TermEdit(App):
         background: #252526;
         border: solid #0078d4;
         layer: menu;
-        position: absolute;
-        offset: 0 1;
+        /* 删除 position 和 offset */
     }
-
+    
     EditMenu {
-        offset: 12 1;
+        /* 删除 offset，使用相对定位或其他方式 */
     }
-
+    
     .menu-item {
         width: 100%;
         height: 1;
@@ -379,26 +378,26 @@ class TermEdit(App):
         text-align: left;
         padding: 0 1;
     }
-
+    
     .menu-item:hover {
         background: #0078d4;
         color: white;
     }
-
+    
     .menu-sep {
         width: 100%;
         height: 1;
         color: #4a4a4a;
         padding: 0 1;
     }
-
+    
     /* 编辑器 */
     #editor {
         height: 1fr;
         border: none;
         background: #1e1e1e;
     }
-
+    
     /* 状态栏 */
     StatusBar {
         dock: bottom;
@@ -406,19 +405,19 @@ class TermEdit(App):
         background: #0078d4;
         padding: 0 1;
     }
-
+    
     StatusBar > Static {
         width: auto;
         min-width: 12;
         color: white;
         padding: 0 1;
     }
-
+    
     #st-file {
         width: 1fr;
         text-align: right;
     }
-
+    
     /* 对话框通用样式 */
     #confirm-dialog, #input-dialog, #about-dialog {
         width: 50;
@@ -428,7 +427,7 @@ class TermEdit(App):
         border: solid #0078d4;
         padding: 1 2;
     }
-
+    
     #file-dialog {
         width: 70;
         height: 25;
@@ -436,7 +435,7 @@ class TermEdit(App):
         border: solid #0078d4;
         padding: 1 2;
     }
-
+    
     #dialog-title, #about-title {
         width: 100%;
         text-align: center;
@@ -444,90 +443,91 @@ class TermEdit(App):
         color: #0078d4;
         padding-bottom: 1;
     }
-
+    
     #dialog-message {
         width: 100%;
         text-align: center;
         padding-bottom: 1;
         color: #cccccc;
     }
-
+    
     #dialog-buttons {
         width: 100%;
         height: 3;
         align: center middle;
         padding-top: 1;
     }
-
+    
     #dialog-buttons > Button {
         margin: 0 1;
     }
-
+    
     #file-tree {
         height: 1fr;
         border: solid #3c3c3c;
         background: #1e1e1e;
         margin-bottom: 1;
     }
-
+    
     #path-input {
         width: 100%;
         margin-bottom: 1;
     }
-
+    
     #filename-row {
         width: 100%;
         height: 3;
         padding: 0;
     }
-
+    
     #filename-row > Label {
         width: auto;
         padding: 1 0;
         color: #cccccc;
     }
-
+    
     #filename-row > Input {
         width: 1fr;
     }
-
+    
     #encoding-row {
         width: 100%;
         height: 3;
         padding: 0;
         margin-bottom: 1;
     }
-
+    
     #encoding-row > Label {
         width: auto;
         padding: 1 0;
         color: #cccccc;
     }
-
+    
     #encoding-row > Input {
         width: 1fr;
     }
-
+    
     #about-dialog {
         width: 45;
         height: auto;
     }
-
+    
     #about-dialog > Static {
         width: 100%;
         color: #cccccc;
     }
-
+    
     #btn-close {
         margin-top: 1;
         width: 100%;
     }
-
+    
     /* 对话框居中 */
     ConfirmDialog, InputDialog, AboutDialog, FileOpenDialog, FileSaveDialog {
         align: center middle;
     }
     """
+
 
     BINDINGS = [
         # 文件操作
@@ -686,17 +686,21 @@ class TermEdit(App):
         elif btn_id == "act-selall":
             self._close_menus()
             self.action_select_all()
-
+    
     def _toggle_menu(self, menu: str) -> None:
         if self.menu_open == menu:
             self._close_menus()
         else:
             self._close_menus()
             if menu == "file":
-                self.mount(FileMenu(id="dropdown-file"))
+                file_menu = FileMenu(id="dropdown-file")
+                self.mount(file_menu)
             elif menu == "edit":
-                self.mount(EditMenu(id="dropdown-edit"))
+                edit_menu = EditMenu(id="dropdown-edit")
+                self.mount(edit_menu)
             self.menu_open = menu
+
+
 
     def _close_menus(self) -> None:
         for menu_id in ["dropdown-file", "dropdown-edit"]:
