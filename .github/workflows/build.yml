@@ -47,7 +47,8 @@ jobs:
 
       - name: Build executable
         run: |
-          pyinstaller --onefile --name termedit termedit.py
+          pyinstaller --onefile --name termedit --hidden-import=typing_extensions --hidden-import=textual --hidden-import=textual.widgets --hidden-import=textual.app --collect-data=rich   termedit.py
+
 
       - name: Rename artifact
         if: github.event_name == 'release'
