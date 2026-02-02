@@ -23,7 +23,7 @@ jobs:
           - os: macos-11
             artifact_name: termedit
             asset_name: termedit-macos
-          - os: ubuntu22
+          - os: ubuntu-22.04
             artifact_name: termedit
             asset_name: termedit-linux
 
