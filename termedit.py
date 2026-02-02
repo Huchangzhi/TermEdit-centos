@@ -776,13 +776,72 @@ class TermEdit(App):
         self.query_one("#editor", TextArea).select_all()
 
     def action_copy(self) -> None:
-        self.query_one("#editor", TextArea).action_copy()
-
+        """复制选中文本"""
+        editor = self.query_one("#editor", TextArea)
+        try:
+            # 获取选中的文本
+            selected_text = editor.selected_text
+            if selected_text:
+                # 尝试使用系统剪贴板
+                import subprocess
+                import platform
+                
+                system = platform.system()
+                if system == "Windows":
+                    subprocess.run(['clip'], input=selected_text, text=True, check=True)
+                elif system == "Darwin":  # macOS
+                    subprocess.run(['pbcopy'], input=selected_text, text=True, check=True)
+                else:  # Linux
+                    subprocess.run(['xclip', '-selection', 'clipboard'], input=selected_text, text=True, check=True)
+        except Exception:
+            pass  # 静默失败
+    
     def action_cut(self) -> None:
-        self.query_one("#editor", TextArea).action_cut()
-
+        """剪切选中文本"""
+        editor = self.query_one("#editor", TextArea)
+        try:
+            selected_text = editor.selected_text
+            if selected_text:
+                # 复制到剪贴板
+                import subprocess
+                import platform
+                
+                system = platform.system()
+                if system == "Windows":
+                    subprocess.run(['clip'], input=selected_text, text=True, check=True)
+                elif system == "Darwin":
+                    subprocess.run(['pbcopy'], input=selected_text, text=True, check=True)
+                else:
+                    subprocess.run(['xclip', '-selection', 'clipboard'], input=selected_text, text=True, check=True)
+                
+                # 删除选中文本
+                editor.delete_selection()
+        except Exception:
+            pass
+    
     def action_paste(self) -> None:
-        self.query_one("#editor", TextArea).action_paste()
+        """粘贴文本"""
+        editor = self.query_one("#editor", TextArea)
+        try:
+            import subprocess
+            import platform
+            
+            system = platform.system()
+            if system == "Windows":
+                result = subprocess.run(['powershell', '-command', 'Get-Clipboard'], capture_output=True, text=True, check=True)
+                clipboard_text = result.stdout
+            elif system == "Darwin":
+                result = subprocess.run(['pbpaste'], capture_output=True, text=True, check=True)
+                clipboard_text = result.stdout
+            else:
+                result = subprocess.run(['xclip', '-selection', 'clipboard', '-o'], capture_output=True, text=True, check=True)
+                clipboard_text = result.stdout
+            
+            if clipboard_text:
+                editor.insert(clipboard_text)
+        except Exception:
+            pass
+
 
     def action_toggle_menu(self) -> None:
         self._toggle_menu("file")
