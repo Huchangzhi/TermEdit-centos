@@ -20,7 +20,7 @@ jobs:
           - os: windows-latest
             artifact_name: termedit.exe
             asset_name: termedit-windows.exe
-          - os: macos-latest
+          - os: macos-11
             artifact_name: termedit
             asset_name: termedit-macos
           - os: ubuntu22
