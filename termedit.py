@@ -5,6 +5,7 @@ By ILoveScratch2<ilovescratch@foxmail.com>
 License: MPL-2.0
 """
 
+# 导入必要的模块
 from textual.app import App, ComposeResult
 from textual.widgets import Static, Button, TextArea, DirectoryTree, Input, Label
 from textual.containers import Horizontal, Vertical, Container
@@ -12,8 +13,10 @@ from textual.binding import Binding
 from textual.screen import ModalScreen
 from textual import events
 from pathlib import Path
+from typing import Union  # Python 3.8 需要显式导入 Union
 import sys
 
+# 确认使用 Union 替代 | 类型操作符
 
 class ConfirmDialog(ModalScreen[bool]):
     BINDINGS = [
@@ -21,12 +24,12 @@ class ConfirmDialog(ModalScreen[bool]):
         Binding("y", "yes", "是"),
         Binding("n", "no", "否"),
     ]
-    
+
     def __init__(self, title: str, message: str):
         super().__init__()
         self.title_text = title
         self.message_text = message
-    
+
     def compose(self) -> ComposeResult:
         yield Container(
             Static(self.title_text, id="dialog-title"),
@@ -38,29 +41,29 @@ class ConfirmDialog(ModalScreen[bool]):
             ),
             id="confirm-dialog"
         )
-    
+
     def on_button_pressed(self, event: Button.Pressed) -> None:
         self.dismiss(event.button.id == "btn-yes")
-    
+
     def action_cancel(self) -> None:
         self.dismiss(False)
-    
+
     def action_yes(self) -> None:
         self.dismiss(True)
-    
+
     def action_no(self) -> None:
         self.dismiss(False)
 
 
-class InputDialog(ModalScreen[str | None]):
+class InputDialog(ModalScreen[Union[str, None]]):  # 使用 Union 替代 str | None
     BINDINGS = [Binding("escape", "cancel", "取消")]
-    
+
     def __init__(self, title: str, placeholder: str = "", default: str = ""):
         super().__init__()
         self.title_text = title
         self.placeholder = placeholder
         self.default = default
-    
+
     def compose(self) -> ComposeResult:
         yield Container(
             Static(self.title_text, id="dialog-title"),
@@ -72,27 +75,27 @@ class InputDialog(ModalScreen[str | None]):
             ),
             id="input-dialog"
         )
-    
+
     def on_mount(self) -> None:
         self.query_one("#dialog-input", Input).focus()
-    
+
     def on_button_pressed(self, event: Button.Pressed) -> None:
         if event.button.id == "btn-ok":
             value = self.query_one("#dialog-input", Input).value
             self.dismiss(value if value else None)
         else:
             self.dismiss(None)
-    
+
     def on_input_submitted(self, event: Input.Submitted) -> None:
         self.dismiss(event.value if event.value else None)
-    
+
     def action_cancel(self) -> None:
         self.dismiss(None)
 
 
 class AboutDialog(ModalScreen[None]):
     BINDINGS = [Binding("escape", "dismiss", "关闭")]
-    
+
     def compose(self) -> ComposeResult:
         yield Container(
             Static("TermEdit v0.1", id="about-title"),
@@ -111,18 +114,18 @@ class AboutDialog(ModalScreen[None]):
             Button("关闭 (ESC)", id="btn-close", variant="primary"),
             id="about-dialog"
         )
-    
+
     def on_button_pressed(self, event: Button.Pressed) -> None:
         self.dismiss()
 
 
-class FileOpenDialog(ModalScreen[tuple[Path, str] | None]):    
+class FileOpenDialog(ModalScreen[Union[tuple[Path, str], None]]):  # 使用 Union 替代 tuple | None
     BINDINGS = [Binding("escape", "cancel", "取消")]
-    
-    def __init__(self, start_path: Path | None = None):
+
+    def __init__(self, start_path: Union[Path, None] = None):  # 使用 Union 替代 Path | None
         super().__init__()
         self.start_path = start_path or Path.cwd()
-    
+
     def compose(self) -> ComposeResult:
         yield Container(
             Static("打开文件", id="dialog-title"),
@@ -140,11 +143,11 @@ class FileOpenDialog(ModalScreen[tuple[Path, str] | None]):
             ),
             id="file-dialog"
         )
-    
+
     def on_mount(self) -> None:
         tree = self.query_one("#file-tree", DirectoryTree)
         tree.focus()
-    
+
     def on_input_submitted(self, event: Input.Submitted) -> None:
         if event.input.id == "path-input":
             path = Path(event.value)
@@ -156,7 +159,7 @@ class FileOpenDialog(ModalScreen[tuple[Path, str] | None]):
                     self._navigate_to(path)
             else:
                 self.notify("路径不存在", severity="warning")
-    
+
     def _navigate_to(self, path: Path) -> None:
         try:
             tree = self.query_one("#file-tree", DirectoryTree)
@@ -166,14 +169,14 @@ class FileOpenDialog(ModalScreen[tuple[Path, str] | None]):
             self.query_one("#path-input", Input).value = str(path)
         except Exception as e:
             self.notify(f"无法导航: {e}", severity="error")
-    
+
     def on_directory_tree_file_selected(self, event: DirectoryTree.FileSelected) -> None:
         encoding = self.query_one("#encoding-input", Input).value.strip()
         self.dismiss((event.path, encoding))
-    
+
     def on_directory_tree_directory_selected(self, event: DirectoryTree.DirectorySelected) -> None:
         self.query_one("#path-input", Input).value = str(event.path)
-    
+
     def on_button_pressed(self, event: Button.Pressed) -> None:
         if event.button.id == "btn-open":
             encoding = self.query_one("#encoding-input", Input).value.strip()
@@ -193,20 +196,20 @@ class FileOpenDialog(ModalScreen[tuple[Path, str] | None]):
                 self.notify("请选择一个文件", severity="warning")
         else:
             self.dismiss(None)
-    
+
     def action_cancel(self) -> None:
         self.dismiss(None)
 
 
-class FileSaveDialog(ModalScreen[Path | None]):
+class FileSaveDialog(ModalScreen[Union[Path, None]]):  # 使用 Union 替代 Path | None
     BINDINGS = [Binding("escape", "cancel", "取消")]
-    
-    def __init__(self, start_path: Path | None = None, default_name: str = ""):
+
+    def __init__(self, start_path: Union[Path, None] = None, default_name: str = ""):
         super().__init__()
         self.start_path = start_path or Path.cwd()
         self.default_name = default_name
         self.current_dir = self.start_path
-    
+
     def compose(self) -> ComposeResult:
         yield Container(
             Static("保存文件", id="dialog-title"),
@@ -224,10 +227,10 @@ class FileSaveDialog(ModalScreen[Path | None]):
             ),
             id="file-dialog"
         )
-    
+
     def on_mount(self) -> None:
         self.query_one("#filename-input", Input).focus()
-    
+
     def on_input_submitted(self, event: Input.Submitted) -> None:
         if event.input.id == "path-input":
             path = Path(event.value)
@@ -244,7 +247,7 @@ class FileSaveDialog(ModalScreen[Path | None]):
             filename = event.value.strip()
             if filename:
                 self.dismiss(self.current_dir / filename)
-    
+
     def _navigate_to(self, path: Path) -> None:
         try:
             tree = self.query_one("#file-tree", DirectoryTree)
@@ -253,16 +256,16 @@ class FileSaveDialog(ModalScreen[Path | None]):
             self.query_one("#path-input", Input).value = str(path)
         except Exception as e:
             self.notify(f"无法导航: {e}", severity="error")
-    
+
     def on_directory_tree_directory_selected(self, event: DirectoryTree.DirectorySelected) -> None:
         self.current_dir = event.path
         self.query_one("#path-input", Input).value = str(event.path)
-    
+
     def on_directory_tree_file_selected(self, event: DirectoryTree.FileSelected) -> None:
         self.current_dir = event.path.parent
         self.query_one("#filename-input", Input).value = event.path.name
         self.query_one("#path-input", Input).value = str(event.path.parent)
-    
+
     def on_button_pressed(self, event: Button.Pressed) -> None:
         if event.button.id == "btn-save":
             filename = self.query_one("#filename-input", Input).value.strip()
@@ -272,7 +275,7 @@ class FileSaveDialog(ModalScreen[Path | None]):
                 self.notify("请输入文件名", severity="warning")
         else:
             self.dismiss(None)
-    
+
     def action_cancel(self) -> None:
         self.dismiss(None)
 
@@ -294,7 +297,7 @@ class FileMenu(Vertical):
         yield Button("退出        Ctrl+Q", id="act-exit", classes="menu-item")
 
 
-class EditMenu(Vertical):  
+class EditMenu(Vertical):
     def compose(self) -> ComposeResult:
         yield Button("撤销        Ctrl+Z", id="act-undo", classes="menu-item")
         yield Button("重做        Ctrl+Y", id="act-redo", classes="menu-item")
@@ -318,12 +321,12 @@ class TermEdit(App):
     """
     TermEdit - By ILoveScratch2
     """
-    
+
     CSS = """
     Screen {
         background: #1e1e1e;
     }
-    
+
     /* 菜单栏 */
     MenuBar {
         dock: top;
@@ -331,7 +334,7 @@ class TermEdit(App):
         background: #0078d4;
         padding: 0;
     }
-    
+
     .menu-btn {
         min-width: 12;
         height: 1;
@@ -341,15 +344,15 @@ class TermEdit(App):
         padding: 0;
         margin: 0;
     }
-    
+
     .menu-btn:hover {
         background: #106ebe;
     }
-    
+
     .menu-btn:focus {
         background: #005a9e;
     }
-    
+
     /* 下拉菜单 */
     FileMenu, EditMenu {
         width: 26;
@@ -361,11 +364,11 @@ class TermEdit(App):
         position: absolute;
         offset: 0 1;
     }
-    
+
     EditMenu {
         offset: 12 1;
     }
-    
+
     .menu-item {
         width: 100%;
         height: 1;
@@ -375,26 +378,26 @@ class TermEdit(App):
         text-align: left;
         padding: 0 1;
     }
-    
+
     .menu-item:hover {
         background: #0078d4;
         color: white;
     }
-    
+
     .menu-sep {
         width: 100%;
         height: 1;
         color: #4a4a4a;
         padding: 0 1;
     }
-    
+
     /* 编辑器 */
     #editor {
         height: 1fr;
         border: none;
         background: #1e1e1e;
     }
-    
+
     /* 状态栏 */
     StatusBar {
         dock: bottom;
@@ -402,19 +405,19 @@ class TermEdit(App):
         background: #0078d4;
         padding: 0 1;
     }
-    
+
     StatusBar > Static {
         width: auto;
         min-width: 12;
         color: white;
         padding: 0 1;
     }
-    
+
     #st-file {
         width: 1fr;
         text-align: right;
     }
-    
+
     /* 对话框通用样式 */
     #confirm-dialog, #input-dialog, #about-dialog {
         width: 50;
@@ -424,7 +427,7 @@ class TermEdit(App):
         border: solid #0078d4;
         padding: 1 2;
     }
-    
+
     #file-dialog {
         width: 70;
         height: 25;
@@ -432,7 +435,7 @@ class TermEdit(App):
         border: solid #0078d4;
         padding: 1 2;
     }
-    
+
     #dialog-title, #about-title {
         width: 100%;
         text-align: center;
@@ -440,80 +443,80 @@ class TermEdit(App):
         color: #0078d4;
         padding-bottom: 1;
     }
-    
+
     #dialog-message {
         width: 100%;
         text-align: center;
         padding-bottom: 1;
         color: #cccccc;
     }
-    
+
     #dialog-buttons {
         width: 100%;
         height: 3;
         align: center middle;
         padding-top: 1;
     }
-    
+
     #dialog-buttons > Button {
         margin: 0 1;
     }
-    
+
     #file-tree {
         height: 1fr;
         border: solid #3c3c3c;
         background: #1e1e1e;
         margin-bottom: 1;
     }
-    
+
     #path-input {
         width: 100%;
         margin-bottom: 1;
     }
-    
+
     #filename-row {
         width: 100%;
         height: 3;
         padding: 0;
     }
-    
+
     #filename-row > Label {
         width: auto;
         padding: 1 0;
         color: #cccccc;
     }
-    
+
     #filename-row > Input {
         width: 1fr;
     }
-    
+
     #encoding-row {
         width: 100%;
         height: 3;
         padding: 0;
         margin-bottom: 1;
     }
-    
+
     #encoding-row > Label {
         width: auto;
         padding: 1 0;
         color: #cccccc;
     }
-    
+
     #encoding-row > Input {
         width: 1fr;
     }
-    
+
     #about-dialog {
         width: 45;
         height: auto;
     }
-    
+
     #about-dialog > Static {
         width: 100%;
         color: #cccccc;
     }
-    
+
     #btn-close {
         margin-top: 1;
         width: 100%;
@@ -524,7 +527,7 @@ class TermEdit(App):
         align: center middle;
     }
     """
-    
+
     BINDINGS = [
         # 文件操作
         Binding("ctrl+n", "new_file", "新建", show=False),
@@ -543,70 +546,67 @@ class TermEdit(App):
         Binding("f10", "toggle_menu", "菜单", show=False),
         Binding("escape", "close_menu", "关闭", show=False),
     ]
-    
-    def __init__(self, filepath: str | None = None):
+
+    def __init__(self, filepath: Union[str, None] = None):  # 使用 Union 替代 str | None
         super().__init__()
-        self.current_file: Path | None = Path(filepath) if filepath else None
+        self.current_file: Union[Path, None] = Path(filepath) if filepath else None  # 使用 Union 替代 Path | None
         self.modified: bool = False
-        self.menu_open: str | None = None
+        self.menu_open: Union[str, None] = None  # 使用 Union 替代 str | None
         self._force_quit: bool = False
-    
+
     def compose(self) -> ComposeResult:
         yield MenuBar()
         yield TextArea(id="editor", show_line_numbers=True)
         yield StatusBar()
-    
+
     def on_mount(self) -> None:
         editor = self.query_one("#editor", TextArea)
         editor.focus()
-        
+
         if self.current_file and self.current_file.exists():
             self._load_file(self.current_file)
-        
-        self._update_status()
 
+        self._update_status()
 
     def on_text_area_changed(self, event: TextArea.Changed) -> None:
         self.modified = True
         self._update_status()
-    
+
     def on_text_area_selection_changed(self, event: TextArea.SelectionChanged) -> None:
         self._update_status()
-    
+
     def _update_status(self) -> None:
         editor = self.query_one("#editor", TextArea)
-        
+
         cursor = editor.cursor_location
         line, col = cursor[0] + 1, cursor[1] + 1
-        
+
         text = editor.text
         words = len(text.split()) if text.strip() else 0
-        
+
         self.query_one("#st-line", Static).update(f"行: {line}")
         self.query_one("#st-col", Static).update(f"列: {col}")
         self.query_one("#st-words", Static).update(f"字数: {words}")
-        
+
         if self.current_file:
             name = self.current_file.name + (" *" if self.modified else "")
         else:
             name = "[未命名]" + (" *" if self.modified else "")
         self.query_one("#st-file", Static).update(name)
-    
+
     def _load_file(self, path: Path, encoding: str = "") -> None:
         try:
-            # 如果指定了编码，使用指定的编码
             if encoding:
                 content = path.read_text(encoding=encoding)
                 used_encoding = encoding
             else:
-                # 尝试使用 utf-8，失败则尝试 gbk
                 try:
                     content = path.read_text(encoding="utf-8")
                     used_encoding = "utf-8"
                 except UnicodeDecodeError:
                     content = path.read_text(encoding="gbk")
                     used_encoding = "gbk"
-            
+
             editor = self.query_one("#editor", TextArea)
             editor.text = content
             self.current_file = path
@@ -615,7 +615,7 @@ class TermEdit(App):
             self.notify(f"已打开: {path.name} (编码: {used_encoding})")
         except Exception as e:
             self.notify(f"无法打开: {e}", severity="error")
-    
+
     def _save_to_file(self, path: Path) -> None:
         try:
             editor = self.query_one("#editor", TextArea)
@@ -626,13 +626,13 @@ class TermEdit(App):
             self.notify(f"已保存: {path.name}")
         except Exception as e:
             self.notify(f"无法保存: {e}", severity="error")
-    
+
     def _check_modified_then(self, callback) -> None:
         if self.modified:
             def handle_result(discard: bool) -> None:
                 if discard:
                     callback()
-            
+
             self.push_screen(
                 ConfirmDialog("放弃更改?", "当前文件有未保存的修改，是否放弃?"),
                 handle_result
@@ -685,7 +685,7 @@ class TermEdit(App):
         elif btn_id == "act-selall":
             self._close_menus()
             self.action_select_all()
-    
+
     def _toggle_menu(self, menu: str) -> None:
         if self.menu_open == menu:
             self._close_menus()
@@ -696,7 +696,7 @@ class TermEdit(App):
             elif menu == "edit":
                 self.mount(EditMenu(id="dropdown-edit"))
             self.menu_open = menu
-    
+
     def _close_menus(self) -> None:
         for menu_id in ["dropdown-file", "dropdown-edit"]:
             try:
@@ -716,76 +716,76 @@ class TermEdit(App):
             self.current_file = None
             self.modified = False
             self._update_status()
-        
+
         self._check_modified_then(do_new)
-    
+
     def action_open_file(self) -> None:
         def do_open():
             start = self.current_file.parent if self.current_file else Path.cwd()
-            
-            def handle_path(result: tuple[Path, str] | None) -> None:
+
+            def handle_path(result: Union[tuple[Path, str], None]) -> None:  # 使用 Union 替代 tuple | None
                 if result:
                     path, encoding = result
                     self._load_file(path, encoding)
-            
+
             self.push_screen(FileOpenDialog(start), handle_path)
-        
+
         self._check_modified_then(do_open)
-    
+
     def action_save_file(self) -> None:
         if self.current_file:
             self._save_to_file(self.current_file)
         else:
             self.action_save_as()
-    
+
     def action_save_as(self) -> None:
         start = self.current_file.parent if self.current_file else Path.cwd()
         default = self.current_file.name if self.current_file else ""
-        
-        def handle_path(path: Path | None) -> None:
+
+        def handle_path(path: Union[Path, None]) -> None:  # 使用 Union 替代 Path | None
             if path:
                 self._save_to_file(path)
-        
+
         self.push_screen(FileSaveDialog(start, default), handle_path)
-    
+
     def action_quit_app(self) -> None:
         if self.modified and not self._force_quit:
             def handle_quit(discard: bool) -> None:
                 if discard:
                     self.exit()
-            
+
             self.push_screen(
                 ConfirmDialog("退出?", "有未保存的修改，确定退出吗?"),
                 handle_quit
             )
         else:
             self.exit()
-    
+
     def action_undo(self) -> None:
         self.query_one("#editor", TextArea).undo()
-    
+
     def action_redo(self) -> None:
         self.query_one("#editor", TextArea).redo()
-    
+
     def action_select_all(self) -> None:
         self.query_one("#editor", TextArea).select_all()
-    
+
     def action_copy(self) -> None:
         self.query_one("#editor", TextArea).action_copy()
-    
+
     def action_cut(self) -> None:
         self.query_one("#editor", TextArea).action_cut()
-    
+
     def action_paste(self) -> None:
         self.query_one("#editor", TextArea).action_paste()
-    
+
     def action_toggle_menu(self) -> None:
         self._toggle_menu("file")
-    
+
     def action_close_menu(self) -> None:
         if self.menu_open:
             self._close_menus()
-    
+
     def on_click(self, event: events.Click) -> None:
         if self.menu_open and event.y > 10:
             self._close_menus()
