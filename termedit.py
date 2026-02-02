@@ -13,12 +13,13 @@ from textual.binding import Binding
 from textual.screen import ModalScreen
 from textual import events
 from pathlib import Path
-from typing import Union  # Python 3.8 需要显式导入 Union
+from typing import Union, Tuple, Optional
 import sys
 
-# 确认使用 Union 替代 | 类型操作符
+# 定义类型别名（Python 3.8 兼容方式）
+PathEncodingTuple = Tuple[Path, str]
 
-class ConfirmDialog(ModalScreen[bool]):
+class ConfirmDialog(ModalScreen):
     BINDINGS = [
         Binding("escape", "cancel", "取消"),
         Binding("y", "yes", "是"),
@@ -55,7 +56,7 @@ class ConfirmDialog(ModalScreen[bool]):
         self.dismiss(False)
 
 
-class InputDialog(ModalScreen[Union[str, None]]):  # 使用 Union 替代 str | None
+class InputDialog(ModalScreen):
     BINDINGS = [Binding("escape", "cancel", "取消")]
 
     def __init__(self, title: str, placeholder: str = "", default: str = ""):
@@ -93,7 +94,7 @@ class InputDialog(ModalScreen[Union[str, None]]):  # 使用 Union 替代 str | N
         self.dismiss(None)
 
 
-class AboutDialog(ModalScreen[None]):
+class AboutDialog(ModalScreen):
     BINDINGS = [Binding("escape", "dismiss", "关闭")]
 
     def compose(self) -> ComposeResult:
@@ -119,10 +120,10 @@ class AboutDialog(ModalScreen[None]):
         self.dismiss()
 
 
-class FileOpenDialog(ModalScreen[Union[tuple[Path, str], None]]):  # 使用 Union 替代 tuple | None
+class FileOpenDialog(ModalScreen):
     BINDINGS = [Binding("escape", "cancel", "取消")]
 
-    def __init__(self, start_path: Union[Path, None] = None):  # 使用 Union 替代 Path | None
+    def __init__(self, start_path: Optional[Path] = None):
         super().__init__()
         self.start_path = start_path or Path.cwd()
 
@@ -201,10 +202,10 @@ class FileOpenDialog(ModalScreen[Union[tuple[Path, str], None]]):  # 使用 Unio
         self.dismiss(None)
 
 
-class FileSaveDialog(ModalScreen[Union[Path, None]]):  # 使用 Union 替代 Path | None
+class FileSaveDialog(ModalScreen):
     BINDINGS = [Binding("escape", "cancel", "取消")]
 
-    def __init__(self, start_path: Union[Path, None] = None, default_name: str = ""):
+    def __init__(self, start_path: Optional[Path] = None, default_name: str = ""):
         super().__init__()
         self.start_path = start_path or Path.cwd()
         self.default_name = default_name
@@ -547,11 +548,11 @@ class TermEdit(App):
         Binding("escape", "close_menu", "关闭", show=False),
     ]
 
-    def __init__(self, filepath: Union[str, None] = None):  # 使用 Union 替代 str | None
+    def __init__(self, filepath: Optional[str] = None):
         super().__init__()
-        self.current_file: Union[Path, None] = Path(filepath) if filepath else None  # 使用 Union 替代 Path | None
+        self.current_file: Optional[Path] = Path(filepath) if filepath else None
         self.modified: bool = False
-        self.menu_open: Union[str, None] = None  # 使用 Union 替代 str | None
+        self.menu_open: Optional[str] = None
         self._force_quit: bool = False
 
     def compose(self) -> ComposeResult:
@@ -723,7 +724,7 @@ class TermEdit(App):
         def do_open():
             start = self.current_file.parent if self.current_file else Path.cwd()
 
-            def handle_path(result: Union[tuple[Path, str], None]) -> None:  # 使用 Union 替代 tuple | None
+            def handle_path(result: Optional[PathEncodingTuple]) -> None:
                 if result:
                     path, encoding = result
                     self._load_file(path, encoding)
@@ -742,7 +743,7 @@ class TermEdit(App):
         start = self.current_file.parent if self.current_file else Path.cwd()
         default = self.current_file.name if self.current_file else ""
 
-        def handle_path(path: Union[Path, None]) -> None:  # 使用 Union 替代 Path | None
+        def handle_path(path: Optional[Path]) -> None:
             if path:
                 self._save_to_file(path)
 
